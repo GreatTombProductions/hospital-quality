@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Quality Check — Compare U.S. Hospitals</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --text: #e0e0e0;
+    --text2: #a0a0b0;
+    --accent: #7c8cf8;
+    --accent2: #5a4fcf;
+    --good: #4ecca3;
+    --warn: #f39c12;
+    --bad: #e74c3c;
+    --star: #f0c040;
+    --border: #2a2a4a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+  header { text-align: center; padding: 40px 20px 20px; }
+  header h1 { font-size: 1.8em; color: var(--accent); margin-bottom: 6px; }
+  header p { color: var(--text2); font-size: 0.95em; }
+
+  .modes { display: flex; gap: 8px; margin: 0 auto 20px; max-width: 500px; }
+  .modes button { flex: 1; padding: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.9em; border-radius: 6px; transition: all 0.2s; }
+  .modes button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .modes button:hover:not(.active) { background: var(--surface2); }
+
+  .search-box { max-width: 600px; margin: 0 auto 30px; }
+  .search-box input { width: 100%; padding: 14px 18px; font-size: 1em; border: 2px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; outline: none; }
+  .search-box input:focus { border-color: var(--accent); }
+
+  .results { max-width: 750px; margin: 0 auto; }
+  .result-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .result-item:hover { background: var(--surface); }
+  .result-item .info { flex: 1; }
+  .result-item .name { font-weight: 600; }
+  .result-item .location { color: var(--text2); font-size: 0.85em; }
+  .result-item .badges { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+  .result-item .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.72em; font-weight: 600; }
+  .badge-er { background: #2a1a1a; color: #ff8080; border: 1px solid #603030; }
+  .badge-birth { background: #1a2a2a; color: #80d0d0; border: 1px solid #306060; }
+  .stars { color: var(--star); font-size: 1em; letter-spacing: 1px; }
+
+  .detail-panel { background: var(--surface); border-radius: 10px; padding: 24px; margin: 20px auto; max-width: 750px; display: none; }
+  .detail-panel.active { display: block; }
+  .detail-panel .back { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9em; padding: 0; margin-bottom: 16px; }
+  .detail-panel h2 { font-size: 1.4em; margin-bottom: 4px; }
+  .detail-panel .subtitle { color: var(--text2); margin-bottom: 16px; font-size: 0.9em; }
+
+  .big-rating { text-align: center; margin: 20px 0; }
+  .big-rating .big-stars { font-size: 2.5em; color: var(--star); letter-spacing: 4px; }
+  .big-rating .big-label { font-size: 0.85em; color: var(--text2); margin-top: 4px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; justify-content: center; }
+  .tag { padding: 3px 10px; border-radius: 12px; font-size: 0.78em; background: var(--surface2); border: 1px solid var(--border); }
+  .tag.yes { background: #1a2d20; border-color: #306030; color: #80d080; }
+  .tag.no { background: #2d201a; border-color: #604020; color: #d0a060; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .metric-card { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+  .metric-card .big { font-size: 1.3em; font-weight: 700; }
+  .metric-card .big.good { color: var(--good); }
+  .metric-card .big.warn { color: var(--warn); }
+  .metric-card .big.bad { color: var(--bad); }
+  .metric-card .small { font-size: 0.75em; color: var(--text2); margin-top: 4px; }
+
+  .section { margin-bottom: 16px; }
+  .section h3 { font-size: 0.95em; color: var(--accent); margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .bar-row .label { width: 200px; font-size: 0.82em; flex-shrink: 0; }
+  .bar-row .bar-track { flex: 1; height: 16px; background: var(--surface2); border-radius: 3px; overflow: hidden; display: flex; }
+  .bar-row .bar-seg { height: 100%; transition: width 0.3s; }
+  .bar-row .count { width: 40px; font-size: 0.8em; text-align: right; flex-shrink: 0; color: var(--text2); }
+
+  .state-list { max-width: 750px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .state-card { background: var(--surface); border-radius: 8px; padding: 14px; cursor: pointer; transition: background 0.15s; }
+  .state-card:hover { background: var(--surface2); }
+  .state-card .st-name { font-weight: 700; margin-bottom: 4px; }
+  .state-card .st-stats { font-size: 0.8em; color: var(--text2); display: flex; gap: 12px; }
+
+  .source-note { text-align: center; color: var(--text2); font-size: 0.78em; margin-top: 40px; padding: 20px; }
+  .source-note a { color: var(--accent); }
+
+  .no-results { text-align: center; padding: 40px; color: var(--text2); }
+  .loading { text-align: center; padding: 40px; color: var(--text2); }
+
+  @media (max-width: 600px) {
+    .container { padding: 12px; }
+    .result-item { flex-wrap: wrap; }
+    .result-item .badges { width: 100%; margin-top: 6px; }
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .state-list { grid-template-columns: 1fr; }
+    .bar-row .label { width: 110px; font-size: 0.75em; }
+    .big-rating .big-stars { font-size: 1.8em; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏥 Hospital Quality Check</h1>
+    <p>5,432 U.S. hospitals — compare quality ratings, mortality outcomes, patient experience, and more. CMS data.</p>
+  </header>
+
+  <div class="modes">
+    <button id="mode-search" class="active" onclick="setMode('search')">🔍 Hospital Search</button>
+    <button id="mode-state" onclick="setMode('state')">🗺️ By State</button>
+  </div>
+
+  <div id="search-section">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Type a hospital name..." autofocus oninput="handleSearch()">
+    </div>
+    <div id="search-results" class="results"></div>
+  </div>
+
+  <div id="state-section" style="display:none;">
+    <div id="state-list" class="state-list"></div>
+    <div id="state-hospitals" class="results" style="display:none;"></div>
+  </div>
+
+  <div id="detail-panel" class="detail-panel"></div>
+
+  <div class="source-note">
+    Data from <a href="https://data.cms.gov/provider-data/dataset/xubh-q36u" target="_blank">CMS Provider Data — Hospital General Information</a>.
+    CMS star ratings: 1–5 scale based on quality measures across mortality, safety, readmission, patient experience, and timely care.
+    "Not Available" means the hospital didn't have enough data for CMS to calculate a rating.
+    This is an independent tool — not affiliated with any government agency.
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

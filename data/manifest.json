@@ -1,0 +1,31 @@
+{
+  "name": "Hospital Quality Check",
+  "total_hospitals": 5432,
+  "rated_hospitals": 3182,
+  "er_hospitals": 4498,
+  "birthing_friendly": 2263,
+  "rating_distribution": {
+    "4": 950,
+    "3": 987,
+    "2": 662,
+    "1": 199,
+    "N/A": 2250,
+    "5": 384
+  },
+  "hospital_types": {
+    "Acute Care Hospitals": 3115,
+    "Acute Care - Veterans Administration": 132,
+    "Rural Emergency Hospital": 41,
+    "Critical Access Hospitals": 1378,
+    "Childrens": 94,
+    "Psychiatric": 635,
+    "Acute Care - Department of Defense": 32,
+    "Long-term": 5
+  },
+  "num_detail_shards": 256,
+  "letter_shards": 26,
+  "data_source": "CMS Provider Data",
+  "data_dataset": "Hospital General Information (xubh-q36u)",
+  "data_url": "https://data.cms.gov/provider-data/dataset/xubh-q36u",
+  "built": 5432
+}
